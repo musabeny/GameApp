@@ -252,12 +252,7 @@ fun FallingObject(
         modifier = modifier,
         contentAlignment = Alignment.TopCenter
     ){
-        AnimatedVisibility(
-            visible = state.shouldCount ,
-            enter = slideInVertically() + expandVertically() + fadeIn(initialAlpha = 0.3f),
-            exit = slideOutVertically() + shrinkVertically() + fadeOut()
 
-        ) {
             Image(
                 painter = painterResource(id = state.fallingIcon),
                 contentDescription = null,
@@ -271,7 +266,7 @@ fun FallingObject(
 
                     }
             )
-        }
+
 
     }
 }
