@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import uk.co.ivano.gameapp.R
 import uk.co.ivano.gameapp.core.util.GameChance
 import uk.co.ivano.gameapp.core.util.GameMode
+import uk.co.ivano.gameapp.core.util.GameObject
 import uk.co.ivano.gameapp.domain.game.usecase.GameUseCase
 import javax.inject.Inject
 import kotlin.time.Duration
@@ -30,9 +31,12 @@ class GameViewModel @Inject constructor(
     private val _state = MutableStateFlow(GameState())
     val state = _state.asStateFlow()
 
+    private var updateVisibility1 = true
+    private var updateVisibility2 = true
+    private var updateVisibility3 = true
+
     init {
         onEvent(GameEvent.ObjectFalling)
-        onEvent(GameEvent.RotateGameChance)
     }
 
     fun onEvent(event: GameEvent){
@@ -43,7 +47,7 @@ class GameViewModel @Inject constructor(
                    useCase.speed().onEach {duration ->
 
                        _state.update {
-                           it.copy(duration = duration)
+                           it.copy(animationState = it.animationState.copy(duration = duration))
                        }
 
                    }.launchIn(viewModelScope)
@@ -51,7 +55,17 @@ class GameViewModel @Inject constructor(
 
 
             }
-            is GameEvent.StartAnim ->{}
+            is GameEvent.StartAnim ->{
+                _state.update {
+                    it.copy(fallingObject1 = _state.value.fallingObject1.copy(icon = _state.value.modeIcon ))
+                }
+                _state.update {
+                    it.copy(fallingObject2 = _state.value.fallingObject1.copy(icon = _state.value.modeIcon ))
+                }
+                _state.update {
+                    it.copy(fallingObject3 = _state.value.fallingObject1.copy(icon = _state.value.modeIcon ))
+                }
+            }
             is GameEvent.SelectedMode ->{
                 _state.update {
                     it.copy(gameMode = event.gameMode)
@@ -68,47 +82,90 @@ class GameViewModel @Inject constructor(
                     it.copy(fallingIcon = _state.value.modeIcon)
                 }
 
+                onEvent(GameEvent.StartAnim)
+
+
             }
             is GameEvent.RotateGameChance ->{
                 viewModelScope.launch {
+                    updateVisibility1 = true
+                    updateVisibility2 = true
+                    updateVisibility3 = true
+                    val objectDelays = useCase.delays(count = 3)
                     _state.update {
-                        it.copy(fallingIcon = _state.value.modeIcon)
+                        it.copy(animationState = it.animationState.copy(objectDelays = objectDelays))
                     }
-
-                    while (true){
-                        delay(Duration.parse("${_state.value.duration }ms"))
-                        _state.update {
+//                    Log.d("namana","objectDelays $objectDelays")
+                    _state.update {
+                        it.copy(fallingObject1 = _state.value.fallingObject1.copy(delay = objectDelays[0].toFloat(),shouldShow = false ))
+                    }
+                    _state.update {
+                        it.copy(fallingObject2 = _state.value.fallingObject2.copy(delay = objectDelays[1].toFloat(),shouldShow = false ))
+                    }
+                    _state.update {
+                        it.copy(fallingObject3 = _state.value.fallingObject2.copy(delay = objectDelays[2].toFloat(),shouldShow = false ))
+                    }
+                    _state.update {
                             it.copy(shouldCount = true)
                         }
                        val (chance1,chance2) = useCase.gameChance(true,0.8)
+                       val (chance3,chance4) = useCase.gameChance(true,0.8)
+                       val (chance5,chance6) = useCase.gameChance(true,0.8)
                         _state.update {
                             it.copy(fallingCount = _state.value.fallingCount + 1)
                         }
                         if(chance1){
-                          _state.update {
-                              it.copy(chance = GameChance.Life)
-                          }
+//                          _state.update {
+//                              it.copy(chance = GameChance.Life)
+//                          }
+                            _state.update {
+                                it.copy(fallingObject1 = _state.value.fallingObject1.copy(chance =  GameChance.Life, icon = _state.value.modeIcon))
+                            }
 
-                      } else{
-                          _state.update {
-                              it.copy(chance = GameChance.Danger)
-                          }
+                        } else{
+//                          _state.update {
+//                              it.copy(chance = GameChance.Danger)
+//                          }
+                            _state.update {
+                                it.copy(fallingObject1 = _state.value.fallingObject1.copy(chance = GameChance.Danger, icon = R.drawable.poison))
+                            }
+
                       }
-                      if(_state.value.chance == GameChance.Life){
-                          _state.update {
-                              it.copy(fallingIcon = _state.value.modeIcon)
-                          }
-                      } else{
-                          _state.update {
-                              it.copy(fallingIcon = R.drawable.poison)
-                          }
-                      }
+
+                    if(chance3){
+
+                        _state.update {
+                            it.copy(fallingObject2 = _state.value.fallingObject2.copy(chance = GameChance.Life ,icon = _state.value.modeIcon))
+                        }
+
+                    } else{
+
+                        _state.update {
+                            it.copy(fallingObject2 = _state.value.fallingObject2.copy(chance = GameChance.Danger,icon = R.drawable.poison ))
+                        }
                     }
+
+                    if(chance5){
+
+                        _state.update {
+                            it.copy(fallingObject3 = _state.value.fallingObject3.copy(chance = GameChance.Life, icon = _state.value.modeIcon ))
+                        }
+
+                    } else{
+
+                        _state.update {
+                            it.copy(fallingObject3 = _state.value.fallingObject3.copy(chance = GameChance.Danger , icon = R.drawable.poison))
+                        }
+                    }
+
+
+
+//                    }
                 }
 
             }
             is GameEvent.GetPoints ->{
-                if(_state.value.chance == GameChance.Danger){
+                if(event.gameChance == GameChance.Danger){
                     if(_state.value.life > 0){
                         _state.update {
                             it.copy(life = _state.value.life-1)
@@ -133,8 +190,59 @@ class GameViewModel @Inject constructor(
                     }
                 }
 
+                when(event.gameObject){
+                    GameObject.Object1 ->{
+                        _state.update {
+                            it.copy(fallingObject1 = _state.value.fallingObject1.copy(shouldShow = false))
+                        }
+
+                    }
+                    GameObject.Object2 ->{
+                        _state.update {
+                            it.copy(fallingObject2 = _state.value.fallingObject2.copy(shouldShow = false))
+                        }
+                    }
+                    GameObject.Object3 ->{
+                        _state.update {
+                            it.copy(fallingObject3 = _state.value.fallingObject3.copy(shouldShow = false))
+                        }
+                    }
+                }
+
                 _state.update {
                     it.copy(shouldCount = false)
+                }
+            }
+            is GameEvent.WaitingObject ->{
+                when(event.gameObject){
+                    GameObject.Object1 ->{
+                        if(updateVisibility1){
+                            updateVisibility1 = false
+                            _state.update {
+                                it.copy(fallingObject1 = _state.value.fallingObject1.copy(shouldShow = true))
+                            }
+                        }
+
+                    }
+                    GameObject.Object2 ->{
+                        if(updateVisibility2){
+                            updateVisibility2 = false
+                            _state.update {
+                                it.copy(fallingObject2 = _state.value.fallingObject2.copy(shouldShow = true))
+                            }
+                        }
+
+                    }
+                    GameObject.Object3 ->{
+                         if(updateVisibility3){
+                             updateVisibility3 = false
+                             _state.update {
+                                 it.copy(fallingObject3 = _state.value.fallingObject3.copy(shouldShow = true))
+                             }
+                         }
+
+
+                    }
                 }
             }
         }

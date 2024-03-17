@@ -60,10 +60,12 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.co.ivano.gameapp.core.util.GameMode
+import uk.co.ivano.gameapp.core.util.GameObject
 import uk.co.ivano.gameapp.presentation.game.component.LifeIcon
 import uk.co.ivano.gameapp.presentation.game.component.Score
 import uk.co.ivano.gameapp.presentation.home.HomeEvent
@@ -92,19 +94,78 @@ fun GameScreen(
 
 
     val animatableY = remember { Animatable(0f) }
+    val animatableY2 = remember { Animatable(0f) }
+    val animatableY3 = remember { Animatable(0f) }
 
-    LaunchedEffect(key1 = state.duration) {
+
+    LaunchedEffect(key1 = state.animationState) {
         while (true) {
-         animatableY.animateTo(
-                targetValue = config.screenHeightDp.toFloat(), // end position
-                animationSpec = tween(
-                    durationMillis = state.duration,
-                    easing = LinearEasing
-                )
-            )
-            animatableY.animateTo(targetValue = 0f, animationSpec = tween(durationMillis = 0) )
+            coroutineScope {
+               launch {
+                   animatableY.animateTo(
+                       targetValue = config.screenHeightDp.toFloat(), // end position
+                       animationSpec = tween(
+                           durationMillis = state.duration,
+                           easing = LinearEasing,
+                           delayMillis = state.fallingObject1.delay.toInt()
+                       )
+                   ){
+                       if(this.value > 0 && !state.fallingObject1.shouldShow){
+                           event(GameEvent.WaitingObject(GameObject.Object1))
+                       }
+                   }
+               }
+                launch {
+                   animatableY2.animateTo(
+                        targetValue = config.screenHeightDp.toFloat(), // end position
+                        animationSpec = tween(
+                            durationMillis = state.duration,
+                            easing = LinearEasing,
+                            delayMillis = state.fallingObject2.delay.toInt()
+                        )
+                    ){
+                       if(this.value > 0 && !state.fallingObject2.shouldShow ){
+                           event(GameEvent.WaitingObject(GameObject.Object2))
+                       }
+
+                   }
+                }
+                launch {
+                    animatableY3.animateTo(
+                        targetValue = config.screenHeightDp.toFloat(), // end position
+                        animationSpec = tween(
+                            durationMillis = state.duration,
+                            easing = LinearEasing,
+                            delayMillis = state.fallingObject3.delay.toInt()
+                        )
+                    ){
+//                       Log.d("namana","animation status ${this.value} ")
+                        if(this.value > 0 && !state.fallingObject3.shouldShow){
+                            event(GameEvent.WaitingObject(GameObject.Object3))
+                        }
+
+                    }
+                }
+
+            }
+            coroutineScope {
+                launch {
+                    event(GameEvent.RotateGameChance)
+                    animatableY.animateTo(targetValue = 0f, animationSpec = tween(durationMillis = 0) )
+              }
+                launch {
+                    animatableY2.animateTo(targetValue = 0f, animationSpec = tween(durationMillis = 0) )
+                }
+
+                launch {
+                    animatableY3.animateTo(targetValue = 0f, animationSpec = tween(durationMillis = 0) )
+                }
+
+            }
+
 
         }
+
     }
 
 
@@ -113,10 +174,10 @@ fun GameScreen(
 
     when(windowType){
         WindowType.Compact ->{
-            GameCompact(state = state, event = event, transition =animatableY.value )
+            GameCompact(state = state, event = event, transition =animatableY.value, transition2 = animatableY2.value , transition3 = animatableY3.value)
         }
         else ->{
-            GameLarge(state = state, event = event, transition = animatableY.value)
+            GameLarge(state = state, event = event, transition = animatableY.value, transition2 = animatableY2.value, transition3 = animatableY3.value)
         }
     }
 
@@ -128,6 +189,8 @@ fun GameCompact(
     state: GameState,
     event: (GameEvent) -> Unit,
     transition: Float,
+    transition2: Float,
+    transition3: Float
 ){
     Box(
         modifier = Modifier
@@ -171,7 +234,9 @@ fun GameCompact(
                 state = state ,
                 event = event,
                 transition = transition,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                transition2 = transition2,
+                transition3 = transition3
             )
 
         }
@@ -183,7 +248,9 @@ fun GameCompact(
 fun GameLarge(
     state: GameState,
     event: (GameEvent) -> Unit,
-    transition: Float
+    transition: Float,
+    transition2: Float,
+    transition3: Float,
 ){
     Box(
         modifier = Modifier
@@ -233,7 +300,9 @@ fun GameLarge(
                state = state ,
                event = event,
                transition = transition,
-               modifier = Modifier.weight(1f)
+               modifier = Modifier.weight(1f),
+               transition2 = transition2,
+               transition3 = transition3
            )
 
         }
@@ -246,27 +315,100 @@ fun FallingObject(
     state: GameState,
     event: (GameEvent) -> Unit,
     transition: Float,
+    transition2: Float,
+    transition3: Float,
     modifier: Modifier
 ){
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.TopCenter
-    ){
 
-            Image(
-                painter = painterResource(id = state.fallingIcon),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(70.dp)
-                    .offset(y = transition.dp)
-                    .clickable {
-                        if (state.shouldCount) {
-                            event(GameEvent.GetPoints)
+    Box(modifier = modifier) {
+
+        VisibilityObject(visible = state.fallingObject2.shouldShow) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopStart
+            ){
+
+                Image(
+                    painter = painterResource(id = state.fallingObject2.icon),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(70.dp)
+                        .offset(y = transition2.dp)
+                        .clickable {
+                            if (state.fallingObject2.shouldShow) {
+                                event(GameEvent.GetPoints(GameObject.Object2,state.fallingObject2.chance))
+                            }
+
                         }
+                )
 
-                    }
-            )
 
+            }
+        }
+        VisibilityObject(visible = state.fallingObject1.shouldShow) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ){
+
+                Image(
+                    painter = painterResource(id = state.fallingObject1.icon),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(70.dp)
+                        .offset(y = transition.dp)
+                        .clickable {
+                            if (state.fallingObject1.shouldShow) {
+                                event(GameEvent.GetPoints(GameObject.Object1,state.fallingObject1.chance))
+                            }
+
+                        }
+                )
+
+
+            }
+        }
+
+        VisibilityObject(visible = state.fallingObject3.shouldShow) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopEnd
+            ){
+
+                Image(
+                    painter = painterResource(id = state.fallingObject3.icon),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(70.dp)
+                        .offset(y = transition3.dp)
+                        .clickable {
+                            if (state.fallingObject3.shouldShow) {
+                                event(GameEvent.GetPoints(GameObject.Object3,state.fallingObject3.chance))
+                            }
+
+                        }
+                )
+
+
+            }
+        }
 
     }
+
+
+}
+
+@Composable
+fun VisibilityObject(
+    visible:Boolean,
+     content:@Composable ()-> Unit
+
+){
+   AnimatedVisibility(
+       visible = visible,
+       enter = fadeIn(),
+       exit = fadeOut()
+   ) {
+       content()
+   }
 }

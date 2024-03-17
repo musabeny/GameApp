@@ -7,6 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import uk.co.ivano.gameapp.domain.game.usecase.GameUseCase
 import uk.co.ivano.gameapp.domain.game.usecase.useCase.GameSpeed
 import uk.co.ivano.gameapp.domain.game.usecase.useCase.GenerateTwoGameStates
+import uk.co.ivano.gameapp.domain.game.usecase.useCase.RandomNumbersForDelay
 import javax.inject.Singleton
 
 @Module
@@ -18,7 +19,8 @@ object UseCaseModule {
     fun  provideGameUseCase():GameUseCase{
         return GameUseCase(
             speed = GameSpeed(),
-            gameChance = GenerateTwoGameStates()
+            gameChance = GenerateTwoGameStates(),
+            delays = RandomNumbersForDelay()
         )
     }
 
