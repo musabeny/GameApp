@@ -149,8 +149,9 @@ fun GameScreen(
 
             }
             coroutineScope {
+                event(GameEvent.RotateGameChance)
+
                 launch {
-                    event(GameEvent.RotateGameChance)
                     animatableY.animateTo(targetValue = 0f, animationSpec = tween(durationMillis = 0) )
               }
                 launch {

@@ -46,9 +46,14 @@ class GameViewModel @Inject constructor(
                 viewModelScope.launch {
                    useCase.speed().onEach {duration ->
 
+//                       _state.update {
+//                           it.copy(animationState = it.animationState.copy(duration = duration))
+//                       }
+
                        _state.update {
-                           it.copy(animationState = it.animationState.copy(duration = duration))
+                           it.copy(duration = duration)
                        }
+//                       Log.d("namana","duration $duration")
 
                    }.launchIn(viewModelScope)
                 }
