@@ -404,7 +404,7 @@ fun LifeAndTime(
             }
         }
         Text(
-            text = "Time elapse: ${state.gameTime}/10 ",
+            text = "Time elapse: ${state.gameTime + 1}/10 ",
             color = Color.White,
             fontWeight = FontWeight.Bold
         )
