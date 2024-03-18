@@ -34,6 +34,8 @@ class GameViewModel @Inject constructor(
     private var updateVisibility1 = true
     private var updateVisibility2 = true
     private var updateVisibility3 = true
+    private var updateVisibility4 = true
+    private var updateVisibility5 = true
 
     init {
         onEvent(GameEvent.ObjectFalling)
@@ -42,18 +44,12 @@ class GameViewModel @Inject constructor(
     fun onEvent(event: GameEvent){
         when(event){
             is GameEvent.ObjectFalling ->{
-                val startTime = SystemClock.uptimeMillis()
                 viewModelScope.launch {
                    useCase.speed().onEach {duration ->
-
-//                       _state.update {
-//                           it.copy(animationState = it.animationState.copy(duration = duration))
-//                       }
 
                        _state.update {
                            it.copy(duration = duration)
                        }
-//                       Log.d("namana","duration $duration")
 
                    }.launchIn(viewModelScope)
                 }
@@ -69,6 +65,13 @@ class GameViewModel @Inject constructor(
                 }
                 _state.update {
                     it.copy(fallingObject3 = _state.value.fallingObject1.copy(icon = _state.value.modeIcon ))
+                }
+
+                _state.update {
+                    it.copy(fallingObject4 = _state.value.fallingObject4.copy(icon = _state.value.modeIcon ))
+                }
+                _state.update {
+                    it.copy(fallingObject5 = _state.value.fallingObject5.copy(icon = _state.value.modeIcon ))
                 }
             }
             is GameEvent.SelectedMode ->{
@@ -96,6 +99,8 @@ class GameViewModel @Inject constructor(
                     updateVisibility1 = true
                     updateVisibility2 = true
                     updateVisibility3 = true
+                    updateVisibility4 = true
+                    updateVisibility5 = true
                     val objectDelays = useCase.delays(count = 3)
                     _state.update {
                         it.copy(animationState = it.animationState.copy(objectDelays = objectDelays))
@@ -108,7 +113,14 @@ class GameViewModel @Inject constructor(
                         it.copy(fallingObject2 = _state.value.fallingObject2.copy(delay = objectDelays[1].toFloat(),shouldShow = false ))
                     }
                     _state.update {
-                        it.copy(fallingObject3 = _state.value.fallingObject2.copy(delay = objectDelays[2].toFloat(),shouldShow = false ))
+                        it.copy(fallingObject3 = _state.value.fallingObject3.copy(delay = objectDelays[2].toFloat(),shouldShow = false ))
+                    }
+
+                    _state.update {
+                        it.copy(fallingObject4 = _state.value.fallingObject4.copy(delay =0f,shouldShow = false ))
+                    }
+                    _state.update {
+                        it.copy(fallingObject5 = _state.value.fallingObject5.copy(delay =0f,shouldShow = false ))
                     }
                     _state.update {
                             it.copy(shouldCount = true)
@@ -116,21 +128,18 @@ class GameViewModel @Inject constructor(
                        val (chance1,chance2) = useCase.gameChance(true,0.8)
                        val (chance3,chance4) = useCase.gameChance(true,0.8)
                        val (chance5,chance6) = useCase.gameChance(true,0.8)
+
+                    val (chance7,chance8) = useCase.gameChance(true,0.8)
+                    val (chance9,chance10) = useCase.gameChance(true,0.8)
                         _state.update {
                             it.copy(fallingCount = _state.value.fallingCount + 1)
                         }
                         if(chance1){
-//                          _state.update {
-//                              it.copy(chance = GameChance.Life)
-//                          }
                             _state.update {
                                 it.copy(fallingObject1 = _state.value.fallingObject1.copy(chance =  GameChance.Life, icon = _state.value.modeIcon))
                             }
 
                         } else{
-//                          _state.update {
-//                              it.copy(chance = GameChance.Danger)
-//                          }
                             _state.update {
                                 it.copy(fallingObject1 = _state.value.fallingObject1.copy(chance = GameChance.Danger, icon = R.drawable.poison))
                             }
@@ -160,6 +169,26 @@ class GameViewModel @Inject constructor(
 
                         _state.update {
                             it.copy(fallingObject3 = _state.value.fallingObject3.copy(chance = GameChance.Danger , icon = R.drawable.poison))
+                        }
+                    }
+
+                    if(chance7){
+                        _state.update {
+                            it.copy(fallingObject4 = _state.value.fallingObject5.copy(chance = GameChance.Life, icon = _state.value.modeIcon ))
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(fallingObject4 = _state.value.fallingObject5.copy(chance = GameChance.Danger , icon = R.drawable.poison))
+                        }
+                    }
+
+                    if(chance9){
+                        _state.update {
+                            it.copy(fallingObject5 = _state.value.fallingObject5.copy(chance = GameChance.Life, icon = _state.value.modeIcon ))
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(fallingObject5 = _state.value.fallingObject5.copy(chance = GameChance.Danger , icon = R.drawable.poison))
                         }
                     }
 
@@ -212,6 +241,16 @@ class GameViewModel @Inject constructor(
                             it.copy(fallingObject3 = _state.value.fallingObject3.copy(shouldShow = false))
                         }
                     }
+                    GameObject.Object4 ->{
+                        _state.update {
+                            it.copy(fallingObject4 = _state.value.fallingObject4.copy(shouldShow = false))
+                        }
+                    }
+                    GameObject.Object5 ->{
+                        _state.update {
+                            it.copy(fallingObject5 = _state.value.fallingObject5.copy(shouldShow = false))
+                        }
+                    }
                 }
 
                 _state.update {
@@ -245,6 +284,26 @@ class GameViewModel @Inject constructor(
                                  it.copy(fallingObject3 = _state.value.fallingObject3.copy(shouldShow = true))
                              }
                          }
+
+
+                    }
+                    GameObject.Object4 ->{
+                        if(updateVisibility4){
+                            updateVisibility4 = false
+                            _state.update {
+                                it.copy(fallingObject4 = _state.value.fallingObject4.copy(shouldShow = true))
+                            }
+                        }
+
+
+                    }
+                    GameObject.Object5 ->{
+                        if(updateVisibility5){
+                            updateVisibility5 = false
+                            _state.update {
+                                it.copy(fallingObject5 = _state.value.fallingObject5.copy(shouldShow = true))
+                            }
+                        }
 
 
                     }

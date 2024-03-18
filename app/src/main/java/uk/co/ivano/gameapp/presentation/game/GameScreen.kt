@@ -36,6 +36,7 @@ import androidx.navigation.NavHostController
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import uk.co.ivano.gameapp.core.util.GameChance
 import uk.co.ivano.gameapp.core.util.GameMode
 import uk.co.ivano.gameapp.core.util.GameObject
 import uk.co.ivano.gameapp.presentation.game.component.LifeIcon
@@ -60,17 +61,15 @@ fun GameScreen(
         gameMode?.let {
             event(GameEvent.SelectedMode(it))
         }
-    }
-
-    LaunchedEffect(key1 = true){
         event(GameEvent.CountTime(navController = navController))
+
     }
-
-
 
     val animatableY = remember { Animatable(0f) }
     val animatableY2 = remember { Animatable(0f) }
     val animatableY3 = remember { Animatable(0f) }
+    val animatableY4 = remember { Animatable(0f) }
+    val animatableY5 = remember { Animatable(0f) }
 
 
     LaunchedEffect(key1 = state.animationState) {
@@ -114,9 +113,39 @@ fun GameScreen(
                             delayMillis = state.fallingObject3.delay.toInt()
                         )
                     ){
-//                       Log.d("namana","animation status ${this.value} ")
                         if(this.value > 0 && !state.fallingObject3.shouldShow){
                             event(GameEvent.WaitingObject(GameObject.Object3))
+                        }
+
+                    }
+                }
+
+                launch {
+                    animatableY4.animateTo(
+                        targetValue = config.screenHeightDp.toFloat()/2, // end position
+                        animationSpec = tween(
+                            durationMillis = state.duration/2,
+                            easing = LinearEasing,
+                            delayMillis = state.fallingObject4.delay.toInt()
+                        )
+                    ){
+                        if(this.value > 0 && !state.fallingObject4.shouldShow){
+                            event(GameEvent.WaitingObject(GameObject.Object4))
+                        }
+
+                    }
+                }
+                launch {
+                    animatableY5.animateTo(
+                        targetValue = config.screenHeightDp.toFloat()/2, // end position
+                        animationSpec = tween(
+                            durationMillis = state.duration/2,
+                            easing = LinearEasing,
+                            delayMillis = state.fallingObject5.delay.toInt()
+                        )
+                    ){
+                        if(this.value > 0 && !state.fallingObject5.shouldShow){
+                            event(GameEvent.WaitingObject(GameObject.Object5))
                         }
 
                     }
@@ -125,7 +154,6 @@ fun GameScreen(
             }
             coroutineScope {
                 event(GameEvent.RotateGameChance)
-
                 launch {
                     animatableY.animateTo(targetValue = 0f, animationSpec = tween(durationMillis = 0) )
               }
@@ -137,16 +165,24 @@ fun GameScreen(
                     animatableY3.animateTo(targetValue = 0f, animationSpec = tween(durationMillis = 0) )
                 }
 
+                launch {
+                    animatableY4.animateTo(targetValue = 0f, animationSpec = tween(durationMillis = 0) )
+                }
+
+                launch {
+                    animatableY5.animateTo(targetValue = 0f, animationSpec = tween(durationMillis = 0) )
+                }
+
             }
         }
     }
 
     when(windowType){
         WindowType.Compact ->{
-            GameCompact(state = state, event = event, transition =animatableY.value, transition2 = animatableY2.value , transition3 = animatableY3.value)
+            GameCompact(state = state, event = event, transition =animatableY.value, transition2 = animatableY2.value , transition3 = animatableY3.value, transition4 = animatableY4.value, transition5 = animatableY5.value)
         }
         else ->{
-            GameLarge(state = state, event = event, transition = animatableY.value, transition2 = animatableY2.value, transition3 = animatableY3.value)
+            GameLarge(state = state, event = event, transition = animatableY.value, transition2 = animatableY2.value, transition3 = animatableY3.value, transition4 = animatableY4.value, transition5 = animatableY5.value)
         }
     }
 
@@ -159,7 +195,9 @@ fun GameCompact(
     event: (GameEvent) -> Unit,
     transition: Float,
     transition2: Float,
-    transition3: Float
+    transition3: Float,
+    transition4: Float,
+    transition5: Float
 ){
     Box(
         modifier = Modifier
@@ -202,7 +240,9 @@ fun GameCompact(
                 transition = transition,
                 modifier = Modifier.fillMaxSize(),
                 transition2 = transition2,
-                transition3 = transition3
+                transition3 = transition3,
+                transition4 = transition4,
+                transition5 = transition5
             )
 
         }
@@ -217,6 +257,8 @@ fun GameLarge(
     transition: Float,
     transition2: Float,
     transition3: Float,
+    transition4: Float,
+    transition5: Float
 ){
     Box(
         modifier = Modifier
@@ -264,7 +306,9 @@ fun GameLarge(
                transition = transition,
                modifier = Modifier.weight(1f),
                transition2 = transition2,
-               transition3 = transition3
+               transition3 = transition3,
+               transition4 = transition4,
+               transition5 = transition5
            )
 
         }
@@ -279,95 +323,81 @@ fun FallingObject(
     transition: Float,
     transition2: Float,
     transition3: Float,
+    transition4: Float,
+    transition5: Float,
     modifier: Modifier
 ){
 
     Box(modifier = modifier) {
 
         VisibilityObject(visible = state.fallingObject2.shouldShow) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.TopStart
-            ){
 
-                Image(
-                    painter = painterResource(id = state.fallingObject2.icon),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(70.dp)
-                        .offset(y = transition2.dp)
-                        .clickable {
-                            if (state.fallingObject2.shouldShow) {
-                                event(
-                                    GameEvent.GetPoints(
-                                        GameObject.Object2,
-                                        state.fallingObject2.chance
-                                    )
-                                )
-                            }
-
-                        }
-                )
-
-
-            }
+            CatchObject(
+               transition =transition2 ,
+               icon = state.fallingObject2.icon,
+               gameObject =GameObject.Object2 ,
+               chance =state.fallingObject2.chance ,
+               shouldShow = state.fallingObject2.shouldShow,
+              modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopStart,
+               event = event
+           )
         }
         VisibilityObject(visible = state.fallingObject1.shouldShow) {
-            Box(
+
+            CatchObject(
+                transition =transition ,
+                icon = state.fallingObject1.icon,
+                gameObject =GameObject.Object1 ,
+                chance =state.fallingObject1.chance ,
+                shouldShow = state.fallingObject1.shouldShow,
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.TopCenter
-            ){
-
-                Image(
-                    painter = painterResource(id = state.fallingObject1.icon),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(70.dp)
-                        .offset(y = transition.dp)
-                        .clickable {
-                            if (state.fallingObject1.shouldShow) {
-                                event(
-                                    GameEvent.GetPoints(
-                                        GameObject.Object1,
-                                        state.fallingObject1.chance
-                                    )
-                                )
-                            }
-
-                        }
-                )
-
-
-            }
+                contentAlignment = Alignment.TopCenter,
+                event = event
+            )
         }
 
         VisibilityObject(visible = state.fallingObject3.shouldShow) {
-            Box(
+
+            CatchObject(
+                transition =transition3 ,
+                icon = state.fallingObject3.icon,
+                gameObject =GameObject.Object3 ,
+                chance =state.fallingObject3.chance ,
+                shouldShow = state.fallingObject3.shouldShow,
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.TopEnd
-            ){
+                contentAlignment = Alignment.TopEnd,
+                event = event
+            )
+        }
 
-                Image(
-                    painter = painterResource(id = state.fallingObject3.icon),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(70.dp)
-                        .offset(y = transition3.dp)
-                        .clickable {
-                            if (state.fallingObject3.shouldShow) {
-                                event(
-                                    GameEvent.GetPoints(
-                                        GameObject.Object3,
-                                        state.fallingObject3.chance
-                                    )
-                                )
-                            }
+        VisibilityObject(visible = state.fallingObject4.shouldShow) {
 
-                        }
-                )
+            CatchObject(
+                transition =transition4 ,
+                icon = state.fallingObject4.icon,
+                gameObject =GameObject.Object4 ,
+                chance =state.fallingObject4.chance ,
+                shouldShow = state.fallingObject4.shouldShow,
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.CenterStart,
+                event = event
+            )
 
 
-            }
+        }
+
+        VisibilityObject(visible = state.fallingObject5.shouldShow) {
+            CatchObject(
+                transition =transition5 ,
+                icon = state.fallingObject5.icon,
+                gameObject =GameObject.Object5 ,
+                chance =state.fallingObject5.chance ,
+                shouldShow = state.fallingObject5.shouldShow,
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.CenterEnd,
+                event = event
+            )
         }
 
     }
@@ -408,5 +438,45 @@ fun LifeAndTime(
             color = Color.White,
             fontWeight = FontWeight.Bold
         )
+    }
+}
+
+@Composable
+fun CatchObject(
+   transition:Float,
+   icon:Int,
+   gameObject: GameObject,
+   chance: GameChance,
+   shouldShow:Boolean,
+   modifier: Modifier,
+   contentAlignment: Alignment,
+   event: (GameEvent) -> Unit
+
+){
+    Box(
+        modifier = modifier,
+        contentAlignment = contentAlignment
+    ){
+
+        Image(
+            painter = painterResource(id = icon),
+            contentDescription = null,
+            modifier = Modifier
+                .size(70.dp)
+                .offset(y = transition.dp)
+                .clickable {
+                    if (shouldShow) {
+                        event(
+                            GameEvent.GetPoints(
+                                gameObject,
+                                chance
+                            )
+                        )
+                    }
+
+                }
+        )
+
+
     }
 }
