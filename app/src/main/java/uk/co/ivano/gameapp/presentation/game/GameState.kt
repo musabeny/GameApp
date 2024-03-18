@@ -25,5 +25,6 @@ data class GameState(
     val fallingObject3: FallingObject = FallingObject(0f,false, icon = R.drawable.vegetables,chance = GameChance.Life),
     val lastUpdateTime:Long = 0,
     val animationState: UpdateAnimation = UpdateAnimation(0, emptyList()),
+    val gameTime:Int = 0
 
 )

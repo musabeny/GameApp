@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uk.co.ivano.gameapp.domain.game.usecase.GameUseCase
+import uk.co.ivano.gameapp.domain.game.usecase.useCase.CountTime
 import uk.co.ivano.gameapp.domain.game.usecase.useCase.GameSpeed
 import uk.co.ivano.gameapp.domain.game.usecase.useCase.GenerateTwoGameStates
 import uk.co.ivano.gameapp.domain.game.usecase.useCase.RandomNumbersForDelay
@@ -20,7 +21,8 @@ object UseCaseModule {
         return GameUseCase(
             speed = GameSpeed(),
             gameChance = GenerateTwoGameStates(),
-            delays = RandomNumbersForDelay()
+            delays = RandomNumbersForDelay(),
+            time = CountTime()
         )
     }
 
