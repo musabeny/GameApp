@@ -4,7 +4,7 @@ import java.util.Random
 
 class RandomNumbersForDelay {
 
-    operator fun invoke(count: Int, rangeStart: Int = 0, rangeEnd: Int = 2000):List<Int>{
+    operator fun invoke(count: Int, rangeStart: Int = 0, rangeEnd: Int = 200):List<Int>{
         require(count >= 1) { "Number of random numbers must be at least 1." }
         require(rangeEnd >= rangeStart) { "Range end must be greater than or equal to range start." }
 

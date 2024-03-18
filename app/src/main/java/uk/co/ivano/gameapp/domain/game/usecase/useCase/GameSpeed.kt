@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.flow
 
 class GameSpeed {
     suspend operator fun invoke() : Flow<Int> = flow {
-        var time = 10000
-        while (time > 1000){
+        var time = 2000
+        while (time > 200){
 //            60000 5000
             delay(60000)
-            time -= 1000
+            time -= 300
             emit(time)
 
         }

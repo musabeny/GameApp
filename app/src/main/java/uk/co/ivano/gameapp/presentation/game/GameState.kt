@@ -9,7 +9,7 @@ import uk.co.ivano.gameapp.domain.game.model.FallingObject
 import uk.co.ivano.gameapp.domain.game.model.UpdateAnimation
 
 data class GameState(
-    val duration: Int = 10000,
+    val duration: Int = 2000,
     val animateState:Boolean = false,
     val gameMode: GameMode = GameMode.Vegetables,
     @DrawableRes val modeIcon:Int = R.drawable.vegetables,
