@@ -253,7 +253,6 @@ class GameViewModel @Inject constructor(
             is GameEvent.CountTime ->{
                 viewModelScope.launch {
                     useCase.time().onEach {time ->
-                        Log.d("namana","time elapsed $time")
                         if(time == -1){
                            event.navController.popBackStack()
                         }else{
